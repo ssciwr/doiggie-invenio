@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Tuple
+from typing import Optional, Dict, List, Tuple
 from functools import cached_property, lru_cache
 from importlib.resources import files
 
@@ -160,7 +160,9 @@ class InvenioRDMRepository(DataRepository):  # pylint: disable=missing-class-doc
         )
 
     @staticmethod
-    def _rights_entry_to_license(entry: dict) -> License:
+    def _rights_entry_to_license(
+        entry: dict, copyright_notice: Optional[str] = None
+    ) -> License:
         _empty_dict = dict()
         _empty_string = ""
         name = entry.get("title", _empty_dict).get("en", _empty_string) or entry.get(
@@ -169,16 +171,16 @@ class InvenioRDMRepository(DataRepository):  # pylint: disable=missing-class-doc
         name = name if len(name) > 0 else None
         description = entry.get("description", _empty_dict).get("en", _empty_string)
         description = description if len(description) > 0 else None
-        identifiers = list()
-        references = list()
+        identifiers = ()
+        references = ()
         if "props" in entry:
             url = entry["props"].get("url")
             if url is not None:
-                identifiers.append(
-                    LicenseIdentifier(scheme=LicenseIdentifierScheme.URL, value=url)
+                identifiers = (
+                    LicenseIdentifier(scheme=LicenseIdentifierScheme.URL, value=url),
                 )
-                references.append(
-                    LicenseReference(role=LicenseReferenceRole.TEXT, uri=url)
+                references = (
+                    LicenseReference(role=LicenseReferenceRole.TEXT, uri=url),
                 )
 
         return License(
@@ -186,18 +188,16 @@ class InvenioRDMRepository(DataRepository):  # pylint: disable=missing-class-doc
             description=description,
             identifiers=identifiers,
             references=references,
+            copyright=copyright_notice,
         )
 
-    def licenses(self):
+    def licenses(self) -> List[License]:
         copyright_notice = self.record_details["metadata"].get("copyright")
 
-        return list(
-            (setattr(l, "copyright", copyright_notice) or l)
-            for l in map(
-                InvenioRDMRepository._rights_entry_to_license,
-                self.record_details["metadata"].get("rights", list()),
-            )
-        )
+        return [
+            InvenioRDMRepository._rights_entry_to_license(entry, copyright_notice)
+            for entry in self.record_details["metadata"].get("rights", list())
+        ]
 
     def download_url(self, file_name: str) -> str:
         """
