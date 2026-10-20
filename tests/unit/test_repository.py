@@ -125,18 +125,18 @@ licenses_testcases = [
             License(
                 name="Creative Commons Attribution 4.0 International",
                 description="The Creative Commons Attribution license allows re-distribution and re-use of a licensed work on the condition that the creator is appropriately credited.",
-                identifiers=[
+                identifiers=(
                     LicenseIdentifier(
                         scheme=LicenseIdentifierScheme.URL,
                         value="https://creativecommons.org/licenses/by/4.0/legalcode",
-                    )
-                ],
-                references=[
+                    ),
+                ),
+                references=(
                     LicenseReference(
                         role=LicenseReferenceRole.TEXT,
                         uri="https://creativecommons.org/licenses/by/4.0/legalcode",
-                    )
-                ],
+                    ),
+                ),
             )
         ],
     ),
